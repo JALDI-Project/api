@@ -1,11 +1,17 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 import os
 import psycopg
 
 app = FastAPI()
 load_dotenv()
 database_url = os.getenv("DATABASE_URL")
+
+
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/all")
