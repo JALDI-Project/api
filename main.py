@@ -10,8 +10,9 @@ database_url = os.getenv("DATABASE_URL")
 
 @app.get("/")
 async def root():
-    var = "Connection failed :("
     with psycopg.connect(database_url) as conn:
-        var = "Connection succesful :)"
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM hazards;")
+            data = cur.fetchall()
 
-    return {"message": var}
+    return {"data": data}
