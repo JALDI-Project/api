@@ -33,7 +33,17 @@ async def all():
             cur.execute("SELECT * FROM hazards;")
             data = cur.fetchall()
 
-    return {"data": data}
+    result = []
+    for i in range(len(data)):
+        result.append({"hazard_id": data[i][0],
+                     "user_id": data[i][1],
+                     "title": data[i][2],
+                     "description": data[i][3],
+                     "latitude": data[i][4],
+                     "longitude": data[i][5],
+                     "time": data[i][6]})
+    
+    return {"data": result}
 
 
 @app.get("/hazards/recent")
@@ -42,8 +52,18 @@ async def get_recent_hazards(time: int = 2):
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM hazards WHERE CURRENT_TIMESTAMP - make_interval(hours => %s) < reported_at;", (time, ))
             data = cur.fetchall()
-            
-    return {"data": data}
+
+    result = []
+    for i in range(len(data)):
+        result.append({"hazard_id": data[i][0],
+                     "user_id": data[i][1],
+                     "title": data[i][2],
+                     "description": data[i][3],
+                     "latitude": data[i][4],
+                     "longitude": data[i][5],
+                     "time": data[i][6]})
+    
+    return {"data": result}
 
 
 @app.get("/hazards/{hazard_id}")
@@ -53,4 +73,17 @@ async def get_hazard(hazard_id: int):
             cur.execute("SELECT * FROM hazards WHERE hazard_id=%s;", (hazard_id, ))
             data = cur.fetchone()
     
-    return {"data": data}
+    if data == []:
+        return {"data": []}
+    
+    result = {
+        "hazard_id": data[0],
+        "user_id": data[1],
+        "title": data[2],
+        "description": data[3],
+        "latitude": data[4],
+        "longitude": data[5],
+        "time": data[6]
+    }
+
+    return {"data": result}
