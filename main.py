@@ -4,7 +4,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 import os
 import psycopg
+from pydantic import BaseModel
 
+# Model for a hazard report submitted to the API
+class Report(BaseModel):
+    reporter: str
+    title: str
+    description: str
+    latitude: float
+    longitude: float
 
 app = FastAPI()
 
@@ -36,12 +44,11 @@ async def all():
     result = []
     for i in range(len(data)):
         result.append({"hazard_id": data[i][0],
-                     "user_id": data[i][1],
-                     "title": data[i][2],
-                     "description": data[i][3],
-                     "latitude": data[i][4],
-                     "longitude": data[i][5],
-                     "time": data[i][6]})
+                     "title": data[i][1],
+                     "description": data[i][2],
+                     "latitude": data[i][3],
+                     "longitude": data[i][4],
+                     "time": data[i][5]})
     
     return {"data": result}
 
@@ -56,12 +63,11 @@ async def get_recent_hazards(time: int = 2):
     result = []
     for i in range(len(data)):
         result.append({"hazard_id": data[i][0],
-                     "user_id": data[i][1],
-                     "title": data[i][2],
-                     "description": data[i][3],
-                     "latitude": data[i][4],
-                     "longitude": data[i][5],
-                     "time": data[i][6]})
+                     "title": data[i][1],
+                     "description": data[i][2],
+                     "latitude": data[i][3],
+                     "longitude": data[i][4],
+                     "time": data[i][5]})
     
     return {"data": result}
 
@@ -78,12 +84,25 @@ async def get_hazard(hazard_id: int):
     
     result = {
         "hazard_id": data[0],
-        "user_id": data[1],
-        "title": data[2],
-        "description": data[3],
-        "latitude": data[4],
-        "longitude": data[5],
-        "time": data[6]
+        "title": data[1],
+        "description": data[2],
+        "latitude": data[3],
+        "longitude": data[4],
+        "time": data[5]
     }
 
     return {"data": result}
+
+@app.post("/submit")
+async def create_hazard(item: Report):
+    item_dict = item.model_dump()
+    with psycopg.connect(database_url) as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO HAZARDS (title, description, latitude, longitude) VALUES (%s, %s, %s, %s);",
+                (item.title, item.description, item.latitude, item.longitude)
+            )
+
+            conn.commit();
+
+    return 201;
